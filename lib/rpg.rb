@@ -5,4 +5,5 @@ require "rpg/version"
 
 require_relative "./rpg/hero"
 require_relative "./rpg/enemy"
+require_relative "./rpg/weapon"
 require_relative "./rpg/cli"

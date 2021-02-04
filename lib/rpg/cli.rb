@@ -1,60 +1,107 @@
-class Cli 
 
-    ## what i could try is the make each player class a sub class of hero and make a hash for each player class and then use mass assignment to allow me to add attributes to the player class. 
+require_relative "hero"
+require_relative "weapon"
+require_relative "monster"
+require "pry"
 
-    def call 
-        greeting
-        choose_your_player
-        player_selection
-        muster
+class Adventure
+  attr_reader :hero, :turns
+
+  def initialize(hero, turns)
+    @hero = hero
+    @turns = turns
+  end
+
+  def encounter_monster(monster)
+    if can_defeat_monster?(monster)
+      puts "#{@hero.name} defeated #{monster.name}!"
+      @hero.power += 1
+    else
+      puts "#{@hero.name} was defeated by #{monster.name}!"
+      @hero.health = 0
     end
+  end
 
-    def greeting 
-        puts ""
-        puts "Welcome to RPG Cli"
-        puts ""
-    end 
+  def encounter_trap
+    @hero.health -= 1
+    puts "#{@hero.name} stepped on a trap! Current Health: #{@hero.health}"
+  end
 
-    def choose_your_player 
-        puts "Choose your character by inputting a number ..."
-        puts ""
-        print "1. Viking: "
-        puts "Weap: Axe & Shield, Arm: 50, Str: 100, Dex: 50, Mag: 0"  
-        puts "" 
-        print "2. Druid: "
-        puts "Weap: Staff, Arm: 0, Str: 0, Dex: 25, Mag: 100"   
-        puts ""      
-    end 
+  def find_potion
+    @hero.health += 1
+    puts "#{@hero.name} found a potion! Glug glug. Current Health: #{@hero.health}"
+  end
 
-    def player_selection 
-        input = gets.strip.downcase 
-        if input == "1"
-            puts ""      
-            puts "You choose to be a viking."
-            puts ""      
-            puts "I'm Ragnar. With my skill in battle we shall conquer all!"
-            puts ""      
-        elsif input == "2"
-            puts ""      
-            puts "You chose to be a druid."
-            puts ""      
-            puts "I'm Merlin. We must defend this world."
-            puts ""      
-        else
-            puts "Invalid Entry. Try Again."
-        end 
-    end 
+  def take_turn
+    @turns -= 1
+    roll = dice_roll
+    if roll%10 == 0
+      encounter_monster(weak_monster)
+    elsif roll%10 == 1
+      find_weapon(random_weapon)
+    elsif roll%5 == 2
+      encounter_trap
+    elsif roll == 19
+      find_potion
+    elsif roll == 18
+      encounter_monster(strong_monster)
+    else
+      puts "The coast is clear. Carry on."
+    end
+  end
 
-    def muster(input)
-        puts ""
-        puts "Let's prepare for battle."
-        puts "You have upgrade points to spend."
-        puts "Which attribute would you like to upgrade?"
-        puts ""
-        if input == "1" 
-            show_hero
-        end     
+  def begin
+    puts "#{@hero.name} has begun his/her epic journey of self discovery!"
+    while @turns > 0 && @hero.health > 0
+      self.take_turn
+    end
+    if @turns == 0
+      puts "#{@hero.name} survived the epic journey"
+    else
+      puts "#{@hero.name} lost. GG. RIPeroni."
+    end
+  end
 
-    end 
+  def find_weapon(weapon)
+    if hero.weapon.nil? || weapon.power > hero.weapon.power
+      hero.weapon = weapon
+      puts "#{@hero.name} equipped the #{weapon.name}!"
+    else
+      puts "#{@hero.name} ignored the #{weapon.name}!"
+    end
+  end
 
-end 
+  private
+
+  def can_defeat_monster?(monster)
+    if @hero.weapon
+      @hero.power + @hero.weapon.power > monster.power
+    else
+      @hero.power > monster.power
+    end
+  end
+
+  def weak_monster
+    Monster.new("Zubat",1)
+  end
+
+  def strong_monster
+    Monster.new("Metapod", 30)
+  end
+
+  def random_weapon
+    weapons.sample
+  end
+
+  def weapons
+    [Weapon.new("Pokeball", 5), Weapon.new("Master Sword", 20), Weapon.new("Excalibur", 19), Weapon.new("Buster Sword", 25)]
+  end
+
+  def dice_roll
+    rand(20)
+  end
+end
+
+hero = Hero.new("Ashe", 10, 10)
+adventure = Adventure.new(hero, 10)
+# adventure.begin
